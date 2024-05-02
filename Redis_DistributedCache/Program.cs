@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Redis_DistributedCache.Service;
 using Redis_DistributedCache.Service.Interface;
 
