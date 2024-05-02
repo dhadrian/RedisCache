@@ -1,12 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore.Storage;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Redis_DistributedCache.Helper;
 using Redis_DistributedCache.Service.Interface;
+using StackExchange.Redis;
 
 namespace Redis_DistributedCache.Service
 {
     public class RedisCacheService : IRedisCacheService
     {
         private IDatabase _db;
-        public CacheService()
+        public RedisCacheService()
         {
             ConfigureRedis();
         }
@@ -17,17 +20,29 @@ namespace Redis_DistributedCache.Service
 
         public T GetData<T>(string key)
         {
-            throw new NotImplementedException();
+            var value = _db.StringGet(key);
+            if (!string.IsNullOrEmpty(value))
+            {
+                return JsonConvert.DeserializeObject<T>(value);
+            }
+            return default;
         }
 
         public object RemoveData(string key)
         {
-            throw new NotImplementedException();
+            bool _isKeyExist = _db.KeyExists(key);
+            if (_isKeyExist == true)
+            {
+                return _db.KeyDelete(key);
+            }
+            return false;
         }
 
         public bool SetData<T>(string key, T value, DateTimeOffset expirationTime)
         {
-            throw new NotImplementedException();
+            TimeSpan expiryTime = expirationTime.DateTime.Subtract(DateTime.Now);
+            var isSet = _db.StringSet(key, JsonConvert.SerializeObject(value), expiryTime);
+            return isSet;
         }
     }
 }
